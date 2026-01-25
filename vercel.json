@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/zora_explore_new", "destination": "/api/index" },
+    { "source": "/zora_get_coin/(.*)", "destination": "/api/index" },
+    { "source": "/zora_get_profile", "destination": "/api/index" },
+    { "source": "/base-rpc", "destination": "/api/index" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

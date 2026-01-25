@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* Safe area for mobile bottoms (iPhone home bar) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}

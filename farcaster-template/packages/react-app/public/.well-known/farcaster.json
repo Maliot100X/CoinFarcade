@@ -1,0 +1,19 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Farcaster × Celo",
+    "iconUrl": "<YOUR_DOMAIN_OR_NGROK_URL>/logo.svg",
+    "homeUrl": "<YOUR_DOMAIN_OR_NGROK_URL>",
+    "splashImageUrl": "<YOUR_DOMAIN_OR_NGROK_URL>/logo.svg",
+    "splashBackgroundColor": "#6366f1",
+    "subtitle": "Social miniapp on Celo",
+    "description": "A decentralized social miniapp on Celo blockchain integrated with Farcaster for NFT minting and token operations",
+    "primaryCategory": "social",
+    "tags": ["social", "nft", "celo", "blockchain", "web3"],
+    "ogTitle": "Farcaster × Celo Miniapp",
+    "ogDescription": "A decentralized social miniapp on Celo blockchain integrated with Farcaster",
+    "ogImageUrl": "<YOUR_DOMAIN_OR_NGROK_URL>/logo.svg",
+    "requiredChains": ["eip155:44787", "eip155:42220"],
+    "requiredCapabilities": ["wallet.getEthereumProvider"]
+  }
+}

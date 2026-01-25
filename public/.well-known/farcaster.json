@@ -1,0 +1,20 @@
+{
+  "frame": {
+    "name": "QuizDrop",
+    "version": "1",
+    "iconUrl": "https://quizdrop.vercel.app/icon.png",
+    "homeUrl": "https://quizdrop.vercel.app",
+    "imageUrl": "https://quizdrop.vercel.app/quiz-preview.jpeg",
+    "splashImageUrl": "https://quizdrop.vercel.app/splash.jpeg",
+    "splashBackgroundColor": "#6200EA",
+    "webhookUrl": "https://quizdrop.vercel.app/api/webhook",
+    "subtitle": "Interactive quiz",
+    "description": "QuizDrop is a decentralized quiz application built for the Farcaster ecosystem.",
+    "primaryCategory": "games"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjIxNjM4MywidHlwZSI6ImF1dGgiLCJrZXkiOiIweENhMDU3RDcxRWY1NDE5RDZDNzhlNTI3MTU2NUFDZEMwMzAxZjA0ODAifQ",
+    "payload": "eyJkb21haW4iOiJxdWl6ZHJvcC52ZXJjZWwuYXBwIn0",
+    "signature": "Uy+H2EVKBlVeWEk5x9AYnZdeAtzlpMfUSTvUDheCml4qxh2c9WTEPNQqgJUoYfBBcwdoKGi9N73mWH5gZn+xPRs="
+  }
+}
