@@ -46,24 +46,17 @@ export async function createZoraCoin(metadata: {
 
         console.log("Creating Zora Coin with args:", coinArgs);
 
-        const { error, parameters, contractAddress } = await createCoin({
+        const { hash, address } = await createCoin({
             call: coinArgs,
             walletClient,
             publicClient: walletClient, // publicActions extended
         });
 
-        if (error) {
-            throw new Error(`Zora SDK Error: ${error}`);
-        }
-
-        // Execute transaction
-        const hash = await walletClient.writeContract(parameters.request);
-        
-        // Wait for receipt
-        await walletClient.waitForTransactionReceipt({ hash });
+        // The SDK handles execution when walletClient is provided
+        // and returns the transaction hash and deployed address.
 
         return {
-            address: contractAddress || '0x...', // SDK might predict address
+            address: address || '0x...', 
             txHash: hash
         };
 
