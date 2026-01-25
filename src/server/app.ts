@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import FormData from 'form-data';
 import axios from 'axios';
+import launchCoinRouter from './routes/launch_coin.js';
 
 // Load env vars from .env.local
 dotenv.config({ path: '.env.local' });
@@ -13,6 +14,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(cors());
 app.use(express.json());
+
+// Mount Launch Coin Route
+app.use('/api', launchCoinRouter);
 
 // Middleware to check API keys if needed, or just public for now as it's a mini app backend
 
