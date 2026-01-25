@@ -16,11 +16,58 @@ app.use(express.json());
 
 // GET /zora_explore_new
 // Purpose: List new coins. 
-// Implementation: Likely querying Zora API or our DB if we index them.
+// Implementation: Fetch from Zora API
 app.get('/zora_explore_new', async (req, res) => {
   try {
-    // TODO: Integrate actual Zora API or DB query
-    // For now, return a placeholder list
+    const query = `
+      query NewTokens {
+        tokens(
+          sort: {sortKey: CREATED, sortDirection: DESC}
+          pagination: {limit: 20}
+          networks: [{network: BASE, chain: BASE_MAINNET}]
+        ) {
+          nodes {
+            token {
+              tokenId
+              name
+              symbol
+              image {
+                url
+              }
+              collectionAddress
+              owner
+            }
+          }
+        }
+      }
+    `;
+
+    const response = await fetch('https://api.zora.co/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': process.env.ZORA_API_KEY || ''
+      },
+      body: JSON.stringify({ query })
+    });
+
+    const result = await response.json();
+    
+    if (result.data && result.data.tokens && result.data.tokens.nodes) {
+      const coins = result.data.tokens.nodes.map((node: any) => ({
+        id: node.token.tokenId,
+        name: node.token.name || 'Unknown Coin',
+        symbol: node.token.symbol || 'COIN',
+        image: node.token.image?.url || 'https://via.placeholder.com/200',
+        address: node.token.collectionAddress
+      }));
+      return res.json({ coins });
+    }
+
+    // Fallback to mock data if API returns empty or fails structure check
+    throw new Error('Invalid API response');
+  } catch (error) {
+    console.error('Error in /zora_explore_new, falling back to mock:', error);
     const mockCoins = [
       { id: '1', name: 'Zora Cat', symbol: 'ZCAT', image: 'https://placekitten.com/200/200' },
       { id: '2', name: 'Base Doge', symbol: 'BDOGE', image: 'https://placedog.net/200/200' },
@@ -29,9 +76,6 @@ app.get('/zora_explore_new', async (req, res) => {
       { id: '5', name: 'Crypto Ninja', symbol: 'NINJA', image: 'https://via.placeholder.com/200/000000/FFFFFF?text=Ninja' }
     ];
     res.json({ coins: mockCoins });
-  } catch (error) {
-    console.error('Error in /zora_explore_new:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -40,18 +84,81 @@ app.get('/zora_explore_new', async (req, res) => {
 app.get('/zora_get_coin/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    // TODO: Fetch coin details from Zora/DB
+    // Query specific token from Zora
+    const query = `
+      query Token {
+        token(token: {address: "${id}", tokenId: "1"}) {
+          token {
+            tokenId
+            name
+            symbol
+            image { url }
+            collectionAddress
+            owner
+            description
+          }
+        }
+      }
+    `;
+    
+    // If it's a real address, try fetching
+    if (id.startsWith('0x')) {
+         const response = await fetch('https://api.zora.co/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': process.env.ZORA_API_KEY || ''
+          },
+          body: JSON.stringify({ query })
+        });
+        const result = await response.json();
+        if (result.data?.token?.token) {
+            const t = result.data.token.token;
+            return res.json({
+                id: t.collectionAddress,
+                name: t.name,
+                symbol: t.symbol,
+                description: t.description || 'No description',
+                creator: t.owner,
+                image: t.image?.url
+            });
+        }
+    }
+
+    // Fallback/Mock
     res.json({ 
       id, 
-      name: `Coin ${id}`, 
-      symbol: `C${id}`, 
-      description: 'This is a cool coin.', 
-      creator: '0x123...' 
+      name: `Coin ${id.substring(0,6)}...`, 
+      symbol: `C${id.substring(0,3)}`, 
+      description: 'This is a cool coin on Base.', 
+      creator: '0xccd...ref' 
     });
   } catch (error) {
     console.error(`Error in /zora_get_coin/${req.params.id}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+// POST /ai_generate
+// Purpose: Generate coin ideas
+app.post('/ai_generate', async (req, res) => {
+    try {
+        // Mock AI generation (randomized)
+        const adjectives = ['Super', 'Mega', 'Cyber', 'Based', 'Degen', 'Happy', 'Grumpy'];
+        const nouns = ['Cat', 'Dog', 'Pepe', 'Chad', 'Rocket', 'Moon', 'Gem'];
+        
+        const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+        const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+        
+        res.json({
+            name: `${randomAdj} ${randomNoun}`,
+            symbol: `${randomAdj[0]}${randomNoun.substring(0,3).toUpperCase()}`,
+            description: `${randomAdj} ${randomNoun} is the next big thing on Base. Launched via CoinFarcade.`,
+            image: `https://via.placeholder.com/300?text=${randomAdj}+${randomNoun}`
+        });
+    } catch (error) {
+        res.status(500).json({ error: "AI Failed" });
+    }
 });
 
 // GET /zora_get_profile

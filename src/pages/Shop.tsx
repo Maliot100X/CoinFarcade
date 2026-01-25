@@ -1,28 +1,49 @@
 import { useState } from 'react';
 import { ShoppingBag, Zap, Crown, Check, Clock } from 'lucide-react';
+import { useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
+import { parseEther } from 'viem';
+
+const REF_WALLET = "0xccd1e099590bfedf279e239558772bbb50902ef6";
 
 export function Shop() {
   const [buyingBoost, setBuyingBoost] = useState<string | null>(null);
   const [subscribing, setSubscribing] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const handleBuyBoost = (type: string) => {
+  const { sendTransactionAsync } = useSendTransaction();
+
+  const handleBuyBoost = async (type: string) => {
     setBuyingBoost(type);
-    // Simulate purchase
-    setTimeout(() => {
-      setBuyingBoost(null);
-      alert(`${type} purchased successfully!`);
-    }, 1500);
+    try {
+        const value = type === '10min' ? '0.0006' : '0.0015'; // ~$1.99, ~$4.99
+        const hash = await sendTransactionAsync({
+            to: REF_WALLET,
+            value: parseEther(value), 
+        });
+        alert(`${type} boost purchased! Tx: ${hash}`);
+    } catch (err) {
+        console.error("Purchase failed", err);
+        alert("Purchase failed or cancelled.");
+    } finally {
+        setBuyingBoost(null);
+    }
   };
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     setSubscribing(true);
-    // Simulate subscription
-    setTimeout(() => {
-      setSubscribing(false);
-      setIsSubscribed(true);
-      alert("Welcome to CoinFarcade Premium!");
-    }, 2000);
+    try {
+        const hash = await sendTransactionAsync({
+            to: REF_WALLET,
+            value: parseEther('0.0045'), // ~$15
+        });
+        setIsSubscribed(true);
+        alert(`Welcome to CoinFarcade Premium! Tx: ${hash}`);
+    } catch (err) {
+        console.error("Subscription failed", err);
+        alert("Subscription failed or cancelled.");
+    } finally {
+        setSubscribing(false);
+    }
   };
 
   return (

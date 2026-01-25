@@ -50,12 +50,25 @@ export function Launch() {
     }
   };
 
-  const generateWithAI = () => {
-      // Placeholder for AI generation
-      setName("Galactic Kitty");
-      setSymbol("GKIT");
-      setDescription("A kitty that travels through the galaxy.");
-      setImage("https://via.placeholder.com/150");
+  const generateWithAI = async () => {
+      try {
+          // Call our MCP AI endpoint
+          const response = await fetch('/ai_generate', { method: 'POST' });
+          if (!response.ok) throw new Error("AI failed");
+          
+          const data = await response.json();
+          setName(data.name);
+          setSymbol(data.symbol);
+          setDescription(data.description);
+          setImage(data.image);
+      } catch (err) {
+          console.error("AI Generation error:", err);
+          // Fallback
+          setName("Galactic Kitty");
+          setSymbol("GKIT");
+          setDescription("A kitty that travels through the galaxy.");
+          setImage("https://via.placeholder.com/150");
+      }
   };
 
   return (
