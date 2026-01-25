@@ -5,6 +5,8 @@ import multer from 'multer';
 import FormData from 'form-data';
 import axios from 'axios';
 import launchCoinRouter from './routes/launch_coin.js';
+import uploadPinataRouter from './routes/upload_pinata.js';
+import zoraTrendingRouter from './routes/zora_trending.js';
 
 // Load env vars from .env.local
 dotenv.config({ path: '.env.local' });
@@ -13,10 +15,12 @@ const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Mount Launch Coin Route
 app.use('/api', launchCoinRouter);
+app.use('/api/upload_pinata', uploadPinataRouter);
+app.use('/api/zora_trending', zoraTrendingRouter);
 
 // Middleware to check API keys if needed, or just public for now as it's a mini app backend
 
