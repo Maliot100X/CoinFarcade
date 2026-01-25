@@ -89,16 +89,32 @@ export function Profile() {
 
       <div className="mx-4 space-y-3">
         {!isConnected && (
-            <div className="grid grid-cols-1 gap-2">
-                {connectors.map((connector) => (
-                    <button
-                        key={connector.uid}
-                        onClick={() => connect({ connector })}
-                        className="w-full py-3 bg-indigo-600 rounded-lg font-bold hover:bg-indigo-500"
-                    >
-                        Connect {connector.name}
-                    </button>
-                ))}
+            <div className="grid grid-cols-1 gap-3">
+                {connectors.map((connector) => {
+                    let label = connector.name;
+                    let bgClass = "bg-indigo-600 hover:bg-indigo-500";
+                    
+                    if (connector.name.toLowerCase().includes("farcaster")) {
+                        label = "Connect Farcaster Wallet";
+                        bgClass = "bg-purple-600 hover:bg-purple-500";
+                    } else if (connector.name.toLowerCase().includes("coinbase")) {
+                        label = "Connect Base Wallet";
+                        bgClass = "bg-blue-600 hover:bg-blue-500";
+                    } else if (connector.name.toLowerCase().includes("metamask") || connector.id === "injected") {
+                        label = "Connect MetaMask";
+                        bgClass = "bg-orange-600 hover:bg-orange-500";
+                    }
+
+                    return (
+                        <button
+                            key={connector.uid}
+                            onClick={() => connect({ connector })}
+                            className={`w-full py-3 rounded-lg font-bold transition-colors ${bgClass}`}
+                        >
+                            {label}
+                        </button>
+                    );
+                })}
             </div>
         )}
 

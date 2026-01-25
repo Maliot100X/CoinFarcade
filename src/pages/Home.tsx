@@ -7,11 +7,15 @@ export function Home() {
   const [activeTab, setActiveTab] = useState('New');
 
   useEffect(() => {
-    // Fetch from our MCP server
-    const apiUrl = import.meta.env.VITE_API_URL || ''; 
-    
     setLoading(true);
-    fetch(`/zora_explore_new?sort=${activeTab}`)
+    
+    let endpoint = '/zora_explore_new';
+    if (activeTab === 'Trending') {
+        endpoint = '/zora_trending';
+    }
+    // For Boosted and Graduated, we default to new for now or implement specific logic later
+    
+    fetch(endpoint)
       .then(res => res.json())
       .then(data => {
         setCoins(data.coins || []);
@@ -76,7 +80,7 @@ export function Home() {
                 <div className="flex items-center space-x-4 relative z-10">
                     <div className="relative">
                         <div className="w-14 h-14 rounded-full bg-gray-800 overflow-hidden border-2 border-gray-700 group-hover:border-purple-500 transition-colors">
-                            <img src={coin.image} alt={coin.name} className="w-full h-full object-cover" />
+                            <img src={coin.image || 'https://via.placeholder.com/60'} alt={coin.name} className="w-full h-full object-cover" />
                         </div>
                         {index < 3 && activeTab === 'Trending' && (
                             <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center text-black text-xs font-bold border-2 border-gray-900">
@@ -92,7 +96,7 @@ export function Home() {
                         </div>
                         <p className="text-sm text-gray-400 flex items-center">
                             <span className="font-bold text-gray-500 mr-2">${coin.symbol}</span>
-                            <span className="text-xs text-gray-600 truncate max-w-[150px]">{coin.address.slice(0,6)}...{coin.address.slice(-4)}</span>
+                            <span className="text-xs text-gray-600 truncate max-w-[150px]">{coin.address ? `${coin.address.slice(0,6)}...${coin.address.slice(-4)}` : ''}</span>
                         </p>
                     </div>
                 </div>
