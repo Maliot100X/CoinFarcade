@@ -1,51 +1,108 @@
 import { useState } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWalletClient, usePublicClient, useAccount } from 'wagmi';
 import { Rocket, Upload, Sparkles } from 'lucide-react';
-import { parseEther } from 'viem';
+import { createCoin } from '@zoralabs/coins-sdk';
+import { base } from 'viem/chains';
 
 export function Launch() {
   const [name, setName] = useState('');
   const [symbol, setSymbol] = useState('');
-  const [image, setImage] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [description, setDescription] = useState('');
   const [isLaunching, setIsLaunching] = useState(false);
 
-  // Placeholder for Zora/Base Launch Contract
-  // In a real app, you'd use the actual Factory ABI and Address
-  const { writeContract, data: hash, error } = useWriteContract();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
+  const { address } = useAccount();
   
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = 
-    useWaitForTransactionReceipt({ 
-      hash, 
-    });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+          const file = e.target.files[0];
+          setImageFile(file);
+          setImagePreview(URL.createObjectURL(file));
+      }
+  };
 
   const handleLaunch = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLaunching(true);
 
     try {
-        // Simulate AI generation delay if needed
-        // await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!imageFile) throw new Error("Image required");
+        if (!walletClient) throw new Error("Wallet not connected");
+        if (!address) throw new Error("No address");
 
-        // In Phase 1, we might just log or call a mock endpoint if we don't have the contract yet
-        // But here is how we would call the contract:
-        /*
-        writeContract({
-            address: '0x...', // Zora Factory Address
-            abi: [...],
-            functionName: 'createToken',
-            args: [name, symbol, image, description],
+        // 1. Upload Image to Pinata
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        
+        const uploadRes = await fetch('/upload_image', {
+            method: 'POST',
+            body: formData
         });
-        */
-       
-       // For now, let's simulate a success after a delay
-       setTimeout(() => {
-           setIsLaunching(false);
-           alert("Coin Launched! (Simulation)");
-       }, 2000);
+        
+        if (!uploadRes.ok) throw new Error("Image upload failed");
+        const { cid: imageCid } = await uploadRes.json();
+        const imageIpfsUrl = `ipfs://${imageCid}`;
+
+        // 2. Upload Metadata to Pinata
+        const metadata = {
+            name: name,
+            symbol: symbol,
+            description: description,
+            image: imageIpfsUrl
+        };
+        
+        const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+        const metadataFile = new File([metadataBlob], 'metadata.json');
+        
+        const metaFormData = new FormData();
+        metaFormData.append('file', metadataFile);
+        
+        const metaRes = await fetch('/upload_image', {
+            method: 'POST',
+            body: metaFormData
+        });
+        
+        if (!metaRes.ok) throw new Error("Metadata upload failed");
+        const { cid: metaCid } = await metaRes.json();
+        const metaIpfsUrl = `ipfs://${metaCid}`;
+
+        // 3. Create Coin using Zora SDK
+        // This ensures we use the REAL Zora contracts and factory logic
+        const coinArgs = {
+            creator: address,
+            name: name,
+            symbol: symbol,
+            metadata: { type: "RAW_URI" as const, uri: metaIpfsUrl },
+            currency: "ETH" as const,
+            chainId: base.id,
+            payoutRecipientOverride: address,
+        };
+        
+        console.log("Launching with args:", coinArgs);
+
+        const result = await createCoin({
+            call: coinArgs,
+            walletClient: walletClient,
+            publicClient: publicClient as any,
+        });
+
+        console.log("Launch result:", result);
+
+        alert("Coin Launched successfully on Base! Tx: " + result.hash);
+        setIsLaunching(false);
+        // Reset form
+        setName('');
+        setSymbol('');
+        setImageFile(null);
+        setImagePreview('');
+        setDescription('');
 
     } catch (err) {
         console.error("Launch failed", err);
+        alert("Launch failed: " + (err as Error).message);
         setIsLaunching(false);
     }
   };
@@ -60,14 +117,17 @@ export function Launch() {
           setName(data.name);
           setSymbol(data.symbol);
           setDescription(data.description);
-          setImage(data.image);
+          // For AI image, we might still use the URL but we need to fetch and convert to file if we want to upload to Pinata?
+          // Or we just set the preview and let user upload a real one?
+          // The prompt says: "User uploads REAL image file... NO IMAGE URL INPUTS... NO AI-ONLY IMAGES WITHOUT IPFS STORAGE."
+          // So if AI generates an image URL, we should probably fetch it server side and pin it, or ask user to download/upload.
+          // For simplicity/compliance, we'll just set text fields.
+          // setImagePreview(data.image); // Optional: show AI suggestion
       } catch (err) {
           console.error("AI Generation error:", err);
-          // Fallback
           setName("Galactic Kitty");
           setSymbol("GKIT");
           setDescription("A kitty that travels through the galaxy.");
-          setImage("https://via.placeholder.com/150");
       }
   };
 
@@ -140,37 +200,36 @@ export function Launch() {
           </div>
 
           <div>
-              <label className="block text-sm font-medium mb-1 text-gray-300">Image URL</label>
-              <div className="flex gap-2">
+              <label className="block text-sm font-medium mb-1 text-gray-300">Image File (Required)</label>
+              <div className="flex flex-col gap-2">
                 <input 
-                    type="text" 
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleFileChange}
                     className="w-full p-3 bg-gray-900 rounded-xl border border-gray-800 focus:border-purple-500 outline-none transition-colors" 
-                    placeholder="https://..." 
                     required
                 />
-                <button type="button" className="p-3 bg-gray-800 rounded-xl border border-gray-700 hover:bg-gray-700">
-                    <Upload size={20} />
-                </button>
+                {imagePreview && (
+                    <img src={imagePreview} alt="Preview" className="w-20 h-20 rounded-lg object-cover" />
+                )}
               </div>
           </div>
           
           <div className="pt-4">
             <button 
                 type="submit" 
-                disabled={isLaunching || isConfirming}
+                disabled={isLaunching}
                 className="w-full py-4 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-                {isLaunching || isConfirming ? (
+                {isLaunching ? (
                     <>
                         <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                        <span>Launching...</span>
+                        <span>Uploading & Launching...</span>
                     </>
                 ) : (
                     <>
                         <Rocket size={20} />
-                        <span>Launch Coin (0.00 ETH)</span>
+                        <span>Launch Coin</span>
                     </>
                 )}
             </button>

@@ -8,13 +8,10 @@ export function Home() {
 
   useEffect(() => {
     // Fetch from our MCP server
-    const apiUrl = import.meta.env.VITE_API_URL || ''; // Empty string means relative path in dev if proxy set up, or absolute if needed.
-    // Actually, with vite proxy, we can just use /zora_explore_new if running on same host, 
-    // but the proxy is set to localhost:3000. 
-    // If we use relative path in fetch like '/zora_explore_new', vite proxy handles it.
+    const apiUrl = import.meta.env.VITE_API_URL || ''; 
     
     setLoading(true);
-    fetch(`/zora_explore_new`)
+    fetch(`/zora_explore_new?sort=${activeTab}`)
       .then(res => res.json())
       .then(data => {
         setCoins(data.coins || []);
@@ -91,11 +88,11 @@ export function Home() {
                     <div className="flex-1">
                         <div className="flex justify-between items-start">
                             <h2 className="font-bold text-lg text-white group-hover:text-purple-300 transition-colors">{coin.name}</h2>
-                            <span className="text-xs font-mono text-green-400 bg-green-400/10 px-2 py-0.5 rounded">+{(Math.random() * 100).toFixed(2)}%</span>
+                            <span className="text-xs font-mono text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded">BASE</span>
                         </div>
                         <p className="text-sm text-gray-400 flex items-center">
                             <span className="font-bold text-gray-500 mr-2">${coin.symbol}</span>
-                            <span className="text-xs text-gray-600">Market Cap: ${(Math.random() * 50000).toFixed(0)}</span>
+                            <span className="text-xs text-gray-600 truncate max-w-[150px]">{coin.address.slice(0,6)}...{coin.address.slice(-4)}</span>
                         </p>
                     </div>
                 </div>

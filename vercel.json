@@ -3,6 +3,10 @@
     { "source": "/zora_explore_new", "destination": "/api/index" },
     { "source": "/zora_get_coin/(.*)", "destination": "/api/index" },
     { "source": "/zora_get_profile", "destination": "/api/index" },
+    { "source": "/zora_get_holdings", "destination": "/api/index" },
+    { "source": "/zora_get_created", "destination": "/api/index" },
+    { "source": "/get_user_activity", "destination": "/api/index" },
+    { "source": "/upload_image", "destination": "/api/index" },
     { "source": "/ai_generate", "destination": "/api/index" },
     { "source": "/base-rpc", "destination": "/api/index" },
     { "source": "/(.*)", "destination": "/index.html" }
